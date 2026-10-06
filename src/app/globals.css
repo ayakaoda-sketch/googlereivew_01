@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #f9f9f7;
+  --line: #e6e5e1;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --series: #2a78d6;
+  --series-soft: #9ec5f4;
+  --good: #0a8a0a;
+  --good-soft: #e5f4e5;
+  --warn: #b77900;
+  --warn-dot: #fab219;
+  --warn-soft: #fdf3dc;
+  --crit: #c23434;
+  --crit-dot: #d03b3b;
+  --crit-soft: #fbe9e9;
+  --accent-ring: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #222221;
+    --line: #33332f;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --series: #3987e5;
+    --series-soft: #184f95;
+    --good: #4cc44c;
+    --good-soft: #13281a;
+    --warn: #f2bd4b;
+    --warn-dot: #fab219;
+    --warn-soft: #2e2512;
+    --crit: #f07070;
+    --crit-dot: #d03b3b;
+    --crit-soft: #331717;
+    --accent-ring: #3987e5;
+  }
+}
+
+@theme inline {
+  --color-page: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-series: var(--series);
+  --color-series-soft: var(--series-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-dot: var(--warn-dot);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit: var(--crit);
+  --color-crit-dot: var(--crit-dot);
+  --color-crit-soft: var(--crit-soft);
+  --color-accent-ring: var(--accent-ring);
+  --font-sans: var(--font-geist-sans), "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
