@@ -7,7 +7,7 @@ export type Locale = "en" | "ko";
 
 export const LOCALES: { key: Locale; label: string }[] = [
   { key: "en", label: "EN" },
-  { key: "ko", label: "한국어" },
+  { key: "ko", label: "KR" },
 ];
 
 export const LOCALE_COOKIE = "lang";
@@ -59,8 +59,7 @@ const en = {
   allStoresCumulative: "All stores cumulative",
   googleReviews: "Google reviews",
   newShort: "new",
-  pos: "pos",
-  neg: "neg",
+  lowRatingCount: (n: number) => `1–2★ reviews: ${n}`,
   vsPrev: "vs prev",
   cumulativeGoogle: "Cumulative (Google)",
   reviewsCount: (n: string) => `${n} reviews`,
@@ -184,8 +183,7 @@ const ko: Dictionary = {
   allStoresCumulative: "전체 매장 누적",
   googleReviews: "Google 리뷰",
   newShort: "신규",
-  pos: "긍정",
-  neg: "부정",
+  lowRatingCount: (n) => `1–2★ 리뷰: ${n}건`,
   vsPrev: "이전 대비",
   cumulativeGoogle: "누적 (Google)",
   reviewsCount: (n) => `리뷰 ${n}건`,

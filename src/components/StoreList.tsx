@@ -86,14 +86,8 @@ export function StoreList({
                 </div>
 
                 <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className="text-ink-2">
-                    <span className="text-good">
-                      {today.positiveCount} {t.pos}
-                    </span>
-                    {" · "}
-                    <span className={today.negativeCount > 0 ? "font-semibold text-crit" : ""}>
-                      {today.negativeCount} {t.neg}
-                    </span>
+                  <span className={`tabular-nums text-crit ${today.criticalCount > 0 ? "font-semibold" : ""}`}>
+                    {t.lowRatingCount(today.criticalCount)}
                   </span>
                   <Delta value={today.newReviewCount - prev.newReviewCount} suffix={t.vsPrev} />
                 </div>
@@ -115,19 +109,9 @@ export function StoreList({
                     )}
                   </div>
                   <div className="text-[11px] tabular-nums text-ink-2">
-                    {snapshot ? (
-                      <>
-                        {t.reviewsCount(snapshot.googleTotalReviews.toLocaleString("en-US"))}
-                        {prevSnapshot && (
-                          <span className="text-muted">
-                            {" "}
-                            · +{snapshot.googleTotalReviews - prevSnapshot.googleTotalReviews}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      t.noData
-                    )}
+                    {snapshot
+                      ? t.reviewsCount(snapshot.googleTotalReviews.toLocaleString("en-US"))
+                      : t.noData}
                   </div>
                 </div>
               </Link>
