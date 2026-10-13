@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { formatLong, formatShort } from "@/lib/date";
+import { formatLong, formatRange, formatRangeShort, type DateRange } from "@/lib/date";
 import { topicLabel } from "@/lib/topics";
 import type { AnalyzedReview, InsightItem, StoreDetail } from "@/lib/types";
 import { ReviewFeed } from "./ReviewFeed";
@@ -65,15 +65,17 @@ function InsightList({
 function CriticalReviews({
   reviews,
   storeName,
+  single,
 }: {
   reviews: AnalyzedReview[];
   storeName: string;
+  single: boolean;
 }) {
   if (reviews.length === 0) {
     return (
       <Card>
         <SectionTitle>Critical Reviews</SectionTitle>
-        <p className="text-sm text-muted">No critical reviews today.</p>
+        <p className="text-sm text-muted">No critical reviews {single ? "today" : "in this period"}.</p>
       </Card>
     );
   }
@@ -119,17 +121,20 @@ function CriticalReviews({
 
 export function StoreAnalysis({
   detail,
-  date,
+  range,
+  compareRange,
   allReviews,
   storeNames,
 }: {
   detail: StoreDetail;
-  date: string;
+  range: DateRange;
+  compareRange: DateRange;
   allReviews: AnalyzedReview[];
   storeNames: Record<string, string>;
 }) {
   const { store, today, prev, snapshot, prevSnapshot } = detail;
-  const vs = `vs ${formatShort(prev.date)}`;
+  const single = range.from === range.to;
+  const vs = `vs ${formatRangeShort(compareRange)}`;
   const newRatingDelta =
     today.avgRating !== null && prev.avgRating !== null ? today.avgRating - prev.avgRating : null;
   const googleDelta =
@@ -145,7 +150,7 @@ export function StoreAnalysis({
               <BrandBadge brand={store.brand} />
               <StatusBadge status={today.status} />
             </div>
-            <p className="mt-0.5 text-xs text-muted">Store Analysis · {formatLong(date)}</p>
+            <p className="mt-0.5 text-xs text-muted">Store Analysis · {formatRange(range)}</p>
           </div>
         </div>
 
@@ -207,16 +212,16 @@ export function StoreAnalysis({
         </div>
 
         <div className="space-y-3">
-          <CriticalReviews reviews={detail.criticalReviews} storeName={store.shortName} />
+          <CriticalReviews reviews={detail.criticalReviews} storeName={store.shortName} single={single} />
           <Card>
-            <SectionTitle>7-Day Trend</SectionTitle>
-            <TrendCharts trend={detail.trend} selectedDate={date} />
+            <SectionTitle>{detail.trend.length}-Day Trend</SectionTitle>
+            <TrendCharts trend={detail.trend} range={range} />
           </Card>
         </div>
       </div>
 
       <ReviewFeed
-        key={`${store.id}-${date}`}
+        key={`${store.id}-${range.from}-${range.to}`}
         storeReviews={detail.reviews}
         allReviews={allReviews}
         storeNames={storeNames}

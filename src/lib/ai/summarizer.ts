@@ -3,10 +3,12 @@
 
 import type { AnalyzedReview, InsightItem, Store, StoreStatus } from "../types";
 import type { DayCounts } from "../aggregate";
+import type { DateRange } from "../date";
 
 export interface StoreSummaryInput {
   store: Store;
-  date: string;
+  /** A single day has from === to; `prevCount` covers the same-length period before. */
+  range: DateRange;
   counts: DayCounts;
   prevCount: number;
   status: StoreStatus;
@@ -16,15 +18,15 @@ export interface StoreSummaryInput {
 }
 
 export interface DailyBriefInput {
-  date: string;
+  range: DateRange;
   totalNew: number;
   prevTotalNew: number;
   stores: StoreSummaryInput[];
 }
 
 export interface Summarizer {
-  /** Korean, operations-oriented summary for one store/day. */
+  /** Korean, operations-oriented summary for one store over the period. */
   storeSummary(input: StoreSummaryInput): string;
-  /** Korean Philippines-wide brief, ordered by the PRD priority rules. */
+  /** Korean Philippines-wide brief for the period, ordered by the PRD priority rules. */
   dailyBrief(input: DailyBriefInput): string;
 }

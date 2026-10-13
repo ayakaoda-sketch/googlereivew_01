@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { formatShort } from "@/lib/date";
+import { formatRangeShort, type DateRange } from "@/lib/date";
 import type { GlobalKpis } from "@/lib/types";
 import { Card, Delta, SectionTitle, formatRating } from "./ui";
 
@@ -26,13 +26,16 @@ function Tile({
 export function GlobalSummary({
   kpis,
   brief,
-  compareDate,
+  range,
+  compareRange,
 }: {
   kpis: GlobalKpis;
   brief: string;
-  compareDate: string;
+  range: DateRange;
+  compareRange: DateRange;
 }) {
-  const vs = `vs ${formatShort(compareDate)}`;
+  const single = range.from === range.to;
+  const vs = `vs ${formatRangeShort(compareRange)}`;
   const ratingDelta =
     kpis.avgRating !== null && kpis.prevAvgRating !== null ? kpis.avgRating - kpis.prevAvgRating : null;
 
@@ -63,7 +66,7 @@ export function GlobalSummary({
           value={<span className={kpis.negative > 0 ? "text-crit" : ""}>{kpis.negative}</span>}
           sub={
             <span className="text-ink-2">
-              {kpis.negative > 0 ? "Needs review today" : "No critical reviews"}
+              {kpis.negative > 0 ? (single ? "Needs review today" : "Needs review") : "No critical reviews"}
             </span>
           }
           tone={kpis.negative > 0 ? "!border-crit-dot/40 !bg-crit-soft" : ""}
@@ -72,7 +75,7 @@ export function GlobalSummary({
 
       <Card className="flex flex-col">
         <SectionTitle right={<span className="text-[11px] text-muted">AI · 한국어</span>}>
-          Philippines Daily AI Brief
+          Philippines {single ? "Daily" : "Period"} AI Brief
         </SectionTitle>
         <ul className="space-y-1.5 text-sm leading-relaxed">
           {brief.split("\n").map((line, i) => (

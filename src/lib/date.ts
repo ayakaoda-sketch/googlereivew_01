@@ -73,3 +73,37 @@ export function formatDateTime(iso: string): string {
   });
   return `${date} · ${time}`;
 }
+
+/** Inclusive period of "YYYY-MM-DD" dates; a single day has from === to. */
+export interface DateRange {
+  from: string;
+  to: string;
+}
+
+export function rangeDays({ from, to }: DateRange): number {
+  const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
+  return Math.round(ms / 86_400_000) + 1;
+}
+
+/** Every date in the range, oldest first. */
+export function datesIn(range: DateRange): string[] {
+  return dateRange(range.to, rangeDays(range));
+}
+
+/** The same-length period immediately before `range`. */
+export function previousRange(range: DateRange): DateRange {
+  const n = rangeDays(range);
+  return { from: addDays(range.from, -n), to: addDays(range.from, -1) };
+}
+
+/** "Oct 5, 2026" · "Oct 6 – Oct 12, 2026" · "Dec 29, 2025 – Jan 4, 2026" */
+export function formatRange({ from, to }: DateRange): string {
+  if (from === to) return formatLong(from);
+  if (from.slice(0, 4) === to.slice(0, 4)) return `${formatShort(from)} – ${formatLong(to)}`;
+  return `${formatLong(from)} – ${formatLong(to)}`;
+}
+
+/** "Oct 5" · "Sep 29 – Oct 5" */
+export function formatRangeShort({ from, to }: DateRange): string {
+  return from === to ? formatShort(from) : `${formatShort(from)} – ${formatShort(to)}`;
+}

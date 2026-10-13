@@ -1,5 +1,16 @@
 import { RECURRING_THRESHOLD } from "../aggregate";
+import { rangeDays, type DateRange } from "../date";
 import type { Summarizer } from "./summarizer";
+
+/** What the comparison period is called: the previous day, or the previous same-length period. */
+function prevLabel(range: DateRange): string {
+  return range.from === range.to ? "전일" : "이전 기간";
+}
+
+/** `mentions7d` spans the period widened to at least 7 days. */
+function windowLabel(range: DateRange): string {
+  return rangeDays(range) <= 7 ? "최근 7일간" : "기간 중";
+}
 
 // The Philippines-wide brief only escalates issues seen this often in 7 days.
 const BRIEF_RECURRING_THRESHOLD = 3;
@@ -14,7 +25,7 @@ function joinLabels(labels: string[]): string {
 }
 
 export const mockSummarizer: Summarizer = {
-  storeSummary({ store, counts, prevCount, positiveInsights, negativeInsights, criticalReviews }) {
+  storeSummary({ store, range, counts, prevCount, positiveInsights, negativeInsights, criticalReviews }) {
     const name = store.shortName;
     if (counts.newReviewCount === 0) {
       return `${name}에는 신규 리뷰가 없었습니다.`;
@@ -25,7 +36,7 @@ export const mockSummarizer: Summarizer = {
     ];
 
     if (isSurge(counts.newReviewCount, prevCount)) {
-      lines.push(`전일(${prevCount}건) 대비 리뷰가 크게 증가했습니다.`);
+      lines.push(`${prevLabel(range)}(${prevCount}건) 대비 리뷰가 크게 증가했습니다.`);
     }
 
     const liked = positiveInsights.slice(0, 2).map((i) => i.label);
@@ -42,7 +53,7 @@ export const mockSummarizer: Summarizer = {
     const recurring = negativeInsights.find((i) => i.mentions7d >= RECURRING_THRESHOLD);
     if (recurring) {
       lines.push(
-        `'${recurring.label}' 의견이 최근 7일간 ${recurring.mentions7d}회 반복되고 있어 매장 운영팀 확인이 필요합니다.`,
+        `'${recurring.label}' 의견이 ${windowLabel(range)} ${recurring.mentions7d}회 반복되고 있어 매장 운영팀 확인이 필요합니다.`,
       );
     }
 
@@ -54,10 +65,10 @@ export const mockSummarizer: Summarizer = {
     return lines.join(" ");
   },
 
-  dailyBrief({ totalNew, prevTotalNew, stores }) {
+  dailyBrief({ range, totalNew, prevTotalNew, stores }) {
     const diff = totalNew - prevTotalNew;
     const lines: string[] = [
-      `총 ${totalNew}개의 신규 리뷰가 등록되었습니다(전일 대비 ${diff >= 0 ? "+" : ""}${diff}).`,
+      `총 ${totalNew}개의 신규 리뷰가 등록되었습니다(${prevLabel(range)} 대비 ${diff >= 0 ? "+" : ""}${diff}).`,
     ];
 
     // 1. Low ratings
@@ -74,7 +85,7 @@ export const mockSummarizer: Summarizer = {
     const surging = stores.filter((s) => isSurge(s.counts.newReviewCount, s.prevCount));
     if (surging.length > 0) {
       lines.push(
-        `${surging.map((s) => `${s.store.shortName}(+${s.counts.newReviewCount - s.prevCount})`).join(", ")}에서 전일 대비 리뷰가 크게 늘었습니다.`,
+        `${surging.map((s) => `${s.store.shortName}(+${s.counts.newReviewCount - s.prevCount})`).join(", ")}에서 ${prevLabel(range)} 대비 리뷰가 크게 늘었습니다.`,
       );
     }
 
@@ -88,7 +99,7 @@ export const mockSummarizer: Summarizer = {
       .slice(0, 3);
     for (const { s, top } of recurring) {
       lines.push(
-        `${s.store.shortName}에서는 '${top.label}' 관련 의견이 최근 7일간 ${top.mentions7d}회 반복되고 있습니다.`,
+        `${s.store.shortName}에서는 '${top.label}' 관련 의견이 ${windowLabel(range)} ${top.mentions7d}회 반복되고 있습니다.`,
       );
     }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { DateRange } from "@/lib/date";
 import type { StoreRow } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
 import { BrandBadge, Delta, StatusBadge, formatRating } from "./ui";
@@ -17,11 +18,11 @@ function overallCumulative(rows: StoreRow[]): { avg: number; total: number } | n
 
 export function StoreList({
   rows,
-  date,
+  range,
   selectedSlug,
 }: {
   rows: StoreRow[];
-  date: string;
+  range: DateRange;
   selectedSlug?: string;
 }) {
   const overall = overallCumulative(rows);
@@ -49,7 +50,7 @@ export function StoreList({
           return (
             <li key={store.id} className="min-w-[220px] lg:min-w-0">
               <Link
-                href={dashboardHref(date, store.slug)}
+                href={dashboardHref(range, store.slug)}
                 aria-current={selected ? "true" : undefined}
                 className={`flex h-full flex-col rounded-xl border p-3 transition-colors ${
                   selected

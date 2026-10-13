@@ -1,6 +1,8 @@
 // Domain types. Shapes mirror the planned Supabase tables so the mock
 // data source can be swapped for the real one without touching the UI.
 
+import type { DateRange } from "./date";
+
 export type Brand = "WOLHWA_GALBI" | "KODOKODO";
 
 /** stores */
@@ -85,12 +87,13 @@ export type StoreStatus = "good" | "watch" | "critical";
 export interface InsightItem {
   label: string;
   topic: TopicKey;
-  mentions: number; // on the selected date
-  mentions7d: number; // last 7 days including the selected date
+  mentions: number; // in the selected period
+  mentions7d: number; // selected period, widened to at least the last 7 days
 }
 
-/** daily_store_summary */
+/** daily_store_summary (aggregated over the period for multi-day ranges) */
 export interface DailyStoreSummary {
+  /** Last day of the summarized period. */
   date: string;
   storeId: string;
   newReviewCount: number;
@@ -141,8 +144,10 @@ export interface StoreDetail {
 }
 
 export interface DashboardData {
-  date: string;
-  compareDate: string;
+  /** Selected period; a single day has from === to. */
+  range: DateRange;
+  /** Same-length period right before `range`. */
+  compareRange: DateRange;
   generatedAt: string | null; // ISO; null if the daily run has not completed
   minDate: string;
   maxDate: string;
@@ -150,6 +155,6 @@ export interface DashboardData {
   brief: string;
   stores: StoreRow[];
   selected: StoreDetail | null;
-  /** All reviews of the date across stores, for the feed's "All stores" scope */
+  /** All reviews of the period across stores, for the feed's "All stores" scope */
   allReviews: AnalyzedReview[];
 }

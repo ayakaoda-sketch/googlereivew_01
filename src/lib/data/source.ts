@@ -1,11 +1,14 @@
-import { addDays, isValidDate, todayManila } from "../date";
+import { addDays, isValidDate, rangeDays, todayManila, type DateRange } from "../date";
 import type { DashboardData } from "../types";
 
 export interface DataSource {
   /** Earliest date with collected data. */
   minDate(): Promise<string>;
-  getDashboard(date: string, storeSlug: string | undefined): Promise<DashboardData>;
+  getDashboard(range: DateRange, storeSlug: string | undefined): Promise<DashboardData>;
 }
+
+/** Longest selectable period, in days. */
+export const MAX_RANGE_DAYS = 92;
 
 /** The latest selectable date is always "yesterday" in Manila — the last complete day. */
 export function latestReviewDate(now: Date = new Date()): string {
@@ -18,4 +21,24 @@ export function resolveDate(requested: unknown, min: string, max: string): strin
   if (requested > max) return max;
   if (requested < min) return min;
   return requested;
+}
+
+/**
+ * Reads `?from=&to=` (a period) or `?date=` (a single day). Invalid parts fall
+ * back to the latest date; the result is clamped to [min, max] and MAX_RANGE_DAYS.
+ */
+export function resolveRange(
+  params: { date?: unknown; from?: unknown; to?: unknown },
+  min: string,
+  max: string,
+): DateRange {
+  if (!isValidDate(params.from) && !isValidDate(params.to)) {
+    const date = resolveDate(params.date, min, max);
+    return { from: date, to: date };
+  }
+  let to = resolveDate(params.to, min, max);
+  let from = isValidDate(params.from) ? resolveDate(params.from, min, max) : to;
+  if (from > to) [from, to] = [to, from];
+  if (rangeDays({ from, to }) > MAX_RANGE_DAYS) from = addDays(to, -(MAX_RANGE_DAYS - 1));
+  return { from, to };
 }

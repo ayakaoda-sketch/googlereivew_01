@@ -2,8 +2,8 @@ import { DateNavigator } from "@/components/DateNavigator";
 import { GlobalSummary } from "@/components/GlobalSummary";
 import { StoreAnalysis } from "@/components/StoreAnalysis";
 import { StoreList } from "@/components/StoreList";
-import { dataSource, latestReviewDate, resolveDate } from "@/lib/data";
-import { formatDateTime, formatLong, formatShort } from "@/lib/date";
+import { dataSource, latestReviewDate, resolveRange } from "@/lib/data";
+import { formatDateTime, formatRange, formatRangeShort, rangeDays } from "@/lib/date";
 
 export default async function Page(props: PageProps<"/">) {
   const params = await props.searchParams;
@@ -11,11 +11,12 @@ export default async function Page(props: PageProps<"/">) {
 
   const maxDate = latestReviewDate();
   const minDate = await dataSource.minDate();
-  const date = resolveDate(params.date, minDate, maxDate);
-  const data = await dataSource.getDashboard(date, storeParam);
+  const range = resolveRange(params, minDate, maxDate);
+  const data = await dataSource.getDashboard(range, storeParam);
 
   const selectedSlug = data.selected?.store.slug;
   const storeNames = Object.fromEntries(data.stores.map((r) => [r.store.id, r.store.shortName]));
+  const days = rangeDays(data.range);
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 pb-10 lg:px-6">
@@ -24,25 +25,34 @@ export default async function Page(props: PageProps<"/">) {
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             Philippines Review Dashboard
           </p>
-          <h1 className="text-lg font-semibold tracking-tight">Review Date · {formatLong(data.date)}</h1>
+          <h1 className="text-lg font-semibold tracking-tight">
+            {days === 1 ? "Review Date" : "Review Period"} · {formatRange(data.range)}
+            {days > 1 && <span className="ml-1.5 text-sm font-normal text-muted">({days} days)</span>}
+          </h1>
           <p className="text-xs text-ink-2">
-            Compared with {formatShort(data.compareDate)}
+            Compared with {formatRangeShort(data.compareRange)}
             {" · "}
             {data.generatedAt ? `Generated ${formatDateTime(data.generatedAt)}` : "Not generated yet"}
           </p>
         </div>
-        <DateNavigator date={data.date} minDate={data.minDate} maxDate={data.maxDate} storeSlug={selectedSlug} />
+        <DateNavigator range={data.range} minDate={data.minDate} maxDate={data.maxDate} storeSlug={selectedSlug} />
       </header>
 
       <main className="space-y-4">
-        <StoreList rows={data.stores} date={data.date} selectedSlug={selectedSlug} />
+        <StoreList rows={data.stores} range={data.range} selectedSlug={selectedSlug} />
 
-        <GlobalSummary kpis={data.global} brief={data.brief} compareDate={data.compareDate} />
+        <GlobalSummary
+          kpis={data.global}
+          brief={data.brief}
+          range={data.range}
+          compareRange={data.compareRange}
+        />
 
         {data.selected ? (
           <StoreAnalysis
             detail={data.selected}
-            date={data.date}
+            range={data.range}
+            compareRange={data.compareRange}
             allReviews={data.allReviews}
             storeNames={storeNames}
           />
