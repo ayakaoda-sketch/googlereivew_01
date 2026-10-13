@@ -14,10 +14,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Absolute base for link-preview URLs (og:image etc.). Vercel provides the production domain.
+const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "https://googlereivew-01.vercel.app";
+
+const DESCRIPTION = "Daily Google review report for Wolhwa Galbi and KODOKODO stores in the Philippines";
+
 export async function generateMetadata(): Promise<Metadata> {
+  const title = getDictionary(await getLocale()).appTitle;
+  // The preview image comes from app/opengraph-image.tsx; link previews always use the English title.
   return {
-    title: getDictionary(await getLocale()).appTitle,
-    description: "Daily Google review report for Wolhwa Galbi and KODOKODO stores in the Philippines",
+    metadataBase: new URL(SITE_URL),
+    title,
+    description: DESCRIPTION,
+    openGraph: {
+      type: "website",
+      url: "/",
+      siteName: "Google Review Dashboard",
+      title: "Google Review Dashboard",
+      description: DESCRIPTION,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Google Review Dashboard",
+      description: DESCRIPTION,
+    },
   };
 }
 
