@@ -1,7 +1,8 @@
 import { mockDataSource } from "./mock/mock-source";
+import { sheetsDataSource } from "./sheets/sheets-source";
 import type { DataSource } from "./source";
 
-// Phase 2 swaps this for the Supabase-backed implementation.
-export const dataSource: DataSource = mockDataSource;
+// DATA_SOURCE=sheets reads the Google spreadsheet; anything else uses built-in sample data.
+export const dataSource: DataSource = process.env.DATA_SOURCE === "sheets" ? sheetsDataSource : mockDataSource;
 
 export { MAX_RANGE_DAYS, latestReviewDate, resolveDate, resolveRange } from "./source";

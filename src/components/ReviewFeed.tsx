@@ -1,13 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { formatDateTime } from "@/lib/date";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useState } from "react";
+import { formatDateTime, type DateRange } from "@/lib/date";
 import { getDictionary, type Dictionary, type Locale } from "@/lib/i18n";
 import { TOPIC_KEYS, topicLabel } from "@/lib/topics";
 import type { AiSentiment, AnalyzedReview, TopicKey } from "@/lib/types";
+import { dashboardHref } from "@/lib/url";
 import { Card, SectionTitle, Stars } from "./ui";
 
 type Filter = "all" | "positive" | "negative" | "critical";
+
+const PAGE_SIZE = 15;
 
 const FILTERS: { key: Filter; label: (t: Dictionary) => string }[] = [
   { key: "all", label: (t) => t.filterAll },
@@ -40,31 +44,51 @@ function matches(review: AnalyzedReview, filter: Filter): boolean {
 }
 
 export function ReviewFeed({
-  storeReviews,
-  allReviews,
-  storeNames,
-  storeName,
+  reviews,
+  stores,
+  selectedSlug,
+  range,
   locale,
 }: {
-  storeReviews: AnalyzedReview[];
-  allReviews: AnalyzedReview[];
-  storeNames: Record<string, string>;
-  storeName: string;
+  /** Reviews of every store; narrowed here by `selectedSlug`. */
+  reviews: AnalyzedReview[];
+  stores: { id: string; slug: string; name: string }[];
+  /** From `?store=`; undefined shows all stores. */
+  selectedSlug?: string;
+  range: DateRange;
   locale: Locale;
 }) {
   const t = getDictionary(locale);
-  const [scope, setScope] = useState<"store" | "all">("store");
-  const [filter, setFilter] = useState<Filter>("all");
+  const router = useRouter();
+  // Start on the low ratings — the reviews that need action first.
+  const [filter, setFilter] = useState<Filter>("critical");
   const [topic, setTopic] = useState<TopicKey | "">("");
 
-  const source = scope === "store" ? storeReviews : allReviews;
-  const visible = useMemo(
-    () =>
-      source.filter(
-        (r) => matches(r, filter) && (!topic || r.analysis?.topics.some((m) => m.topic === topic)),
-      ),
-    [source, filter, topic],
-  );
+  const storeName = Object.fromEntries(stores.map((s) => [s.id, s.name]));
+  const selectedId = stores.find((s) => s.slug === selectedSlug)?.id;
+
+  const visible = useMemo(() => {
+    const list = reviews.filter(
+      (r) =>
+        (!selectedId || r.storeId === selectedId) &&
+        matches(r, filter) &&
+        (!topic || r.analysis?.topics.some((m) => m.topic === topic)),
+    );
+    // Newest first, whatever the filter.
+    return [...list].sort((a, b) => b.googleCreatedAt.localeCompare(a.googleCreatedAt));
+  }, [reviews, selectedId, filter, topic]);
+
+  // Back to page 1 whenever what is being listed changes (store comes from the URL).
+  const listKey = `${selectedSlug}|${filter}|${topic}`;
+  const [paging, setPaging] = useState({ key: listKey, page: 1 });
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const page = paging.key === listKey ? Math.min(paging.page, pageCount) : 1;
+  const pageItems = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const topRef = useRef<HTMLDivElement>(null);
+  const goTo = (p: number) => {
+    setPaging({ key: listKey, page: p });
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const chip = (active: boolean) =>
     `rounded-full border px-3 py-1 text-xs font-medium ${
@@ -73,22 +97,28 @@ export function ReviewFeed({
 
   return (
     <Card>
+      <div ref={topRef} className="scroll-mt-24" />
       <SectionTitle right={<span className="text-xs text-muted">{t.reviewsShort(visible.length)}</span>}>
         {t.reviewFeed}
       </SectionTitle>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="mr-2 flex rounded-lg border border-line p-0.5 text-xs">
-          {(["store", "all"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setScope(s)}
-              className={`rounded-md px-2.5 py-1 font-medium ${scope === s ? "bg-surface-2 text-ink" : "text-muted"}`}
-            >
-              {s === "store" ? storeName : t.allStores}
-            </button>
+        {/* The store lives in the URL so the highlighted store card stays in sync. */}
+        <select
+          aria-label={t.store}
+          value={selectedSlug ?? ""}
+          onChange={(e) =>
+            router.replace(dashboardHref(range, e.target.value || undefined), { scroll: false })
+          }
+          className="mr-2 rounded-lg border border-line bg-surface px-3 py-1 text-xs font-medium text-ink"
+        >
+          <option value="">{t.allStores}</option>
+          {stores.map((s) => (
+            <option key={s.slug} value={s.slug}>
+              {s.name}
+            </option>
           ))}
-        </div>
+        </select>
         {FILTERS.map((f) => (
           <button key={f.key} className={chip(filter === f.key)} onClick={() => setFilter(f.key)}>
             {f.label(t)}
@@ -113,14 +143,14 @@ export function ReviewFeed({
         <p className="py-6 text-center text-sm text-muted">{t.noMatches}</p>
       ) : (
         <ul className="divide-y divide-line">
-          {visible.map((r) => {
+          {pageItems.map((r) => {
             const summary = locale === "ko" ? r.analysis?.summaryKo : r.analysis?.summaryEn;
             return (
               <li key={r.id} className="py-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <Stars rating={r.rating} locale={locale} />
                   <span className="font-medium">{r.reviewerName}</span>
-                  {scope === "all" && <span className="text-xs text-ink-2">{storeNames[r.storeId]}</span>}
+                  {!selectedId && <span className="text-xs text-ink-2">{storeName[r.storeId]}</span>}
                   <span className="text-xs text-muted">{formatDateTime(r.googleCreatedAt, locale)}</span>
                   {r.analysis && (
                     <span className={`text-xs font-medium capitalize ${SENTIMENT_STYLE[r.analysis.sentiment]}`}>
@@ -146,6 +176,84 @@ export function ReviewFeed({
           })}
         </ul>
       )}
+
+      {pageCount > 1 && (
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          total={visible.length}
+          onChange={goTo}
+          t={t}
+        />
+      )}
     </Card>
+  );
+}
+
+/** Page numbers to show: first, last, and the neighbours of the current page, with gaps. */
+function pageList(page: number, pageCount: number): (number | "gap")[] {
+  const shown = [...new Set([1, page - 1, page, page + 1, pageCount])]
+    .filter((p) => p >= 1 && p <= pageCount)
+    .sort((a, b) => a - b);
+  return shown.flatMap((p, i) => (i > 0 && p - shown[i - 1] > 1 ? ["gap" as const, p] : [p]));
+}
+
+function Pagination({
+  page,
+  pageCount,
+  total,
+  onChange,
+  t,
+}: {
+  page: number;
+  pageCount: number;
+  total: number;
+  onChange: (page: number) => void;
+  t: Dictionary;
+}) {
+  const btn = "grid h-8 min-w-8 place-items-center rounded-lg px-2 text-xs font-medium tabular-nums";
+  const first = (page - 1) * PAGE_SIZE + 1;
+  const last = Math.min(page * PAGE_SIZE, total);
+  return (
+    <nav aria-label={t.pagination} className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+      <span className="text-xs text-muted tabular-nums">{t.showingRange(first, last, total)}</span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          disabled={page === 1}
+          onClick={() => onChange(page - 1)}
+          aria-label={t.prevPage}
+          className={`${btn} border border-line text-ink-2 hover:bg-surface-2 disabled:opacity-40`}
+        >
+          ‹
+        </button>
+        {pageList(page, pageCount).map((p, i) =>
+          p === "gap" ? (
+            <span key={`gap-${i}`} className="px-1 text-xs text-muted">
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              type="button"
+              aria-current={p === page ? "page" : undefined}
+              onClick={() => onChange(p)}
+              className={`${btn} ${p === page ? "bg-ink text-surface" : "text-ink-2 hover:bg-surface-2"}`}
+            >
+              {p}
+            </button>
+          ),
+        )}
+        <button
+          type="button"
+          disabled={page === pageCount}
+          onClick={() => onChange(page + 1)}
+          aria-label={t.nextPage}
+          className={`${btn} border border-line text-ink-2 hover:bg-surface-2 disabled:opacity-40`}
+        >
+          ›
+        </button>
+      </div>
+    </nav>
   );
 }

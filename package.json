@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gbp:sync": "node --env-file=.env.local scripts/gbp-sync.mjs",
+    "gbp:locations": "node --env-file=.env.local scripts/gbp-locations.mjs",
+    "google:auth": "node --env-file=.env.local scripts/google-auth.mjs",
+    "sheets:check": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/sheets-check.mjs"
   },
   "dependencies": {
     "next": "16.3.8",

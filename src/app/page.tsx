@@ -1,7 +1,6 @@
 import { DateNavigator } from "@/components/DateNavigator";
-import { GlobalSummary } from "@/components/GlobalSummary";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { StoreAnalysis } from "@/components/StoreAnalysis";
+import { ReviewFeed } from "@/components/ReviewFeed";
 import { StoreList } from "@/components/StoreList";
 import { dataSource, latestReviewDate, resolveRange } from "@/lib/data";
 import { formatDateTime, formatRange, formatRangeShort, rangeDays } from "@/lib/date";
@@ -19,8 +18,12 @@ export default async function Page(props: PageProps<"/">) {
   const range = resolveRange(params, minDate, maxDate);
   const data = await dataSource.getDashboard(range, storeParam, locale);
 
-  const selectedSlug = data.selected?.store.slug;
-  const storeNames = Object.fromEntries(data.stores.map((r) => [r.store.id, r.store.shortName]));
+  // Only an explicit, valid ?store= narrows the feed; otherwise every store is shown.
+  const selectedSlug = data.stores.some((r) => r.store.slug === storeParam) ? storeParam : undefined;
+  const feedStores = data.stores
+    .map((r) => r.store)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((s) => ({ id: s.id, slug: s.slug, name: s.shortName }));
   const days = rangeDays(data.range);
 
   return (
@@ -55,21 +58,13 @@ export default async function Page(props: PageProps<"/">) {
       <main className="space-y-4">
         <StoreList rows={data.stores} range={data.range} selectedSlug={selectedSlug} locale={locale} />
 
-        <GlobalSummary
-          kpis={data.global}
-          brief={data.brief}
-          range={data.range}
-          compareRange={data.compareRange}
-          locale={locale}
-        />
-
-        {data.selected ? (
-          <StoreAnalysis
-            detail={data.selected}
+        {data.stores.length > 0 ? (
+          <ReviewFeed
+            key={`${data.range.from}-${data.range.to}`}
+            reviews={data.allReviews}
+            stores={feedStores}
+            selectedSlug={selectedSlug}
             range={data.range}
-            compareRange={data.compareRange}
-            allReviews={data.allReviews}
-            storeNames={storeNames}
             locale={locale}
           />
         ) : (

@@ -48,6 +48,17 @@ export const MOCK_STORES: Store[] = [
     sortOrder: 4,
   },
   {
+    id: "st_estancia",
+    slug: "estancia",
+    brand: "WOLHWA_GALBI",
+    storeName: "Wolhwa Galbi Estancia",
+    shortName: "Estancia",
+    googleLocationId: null,
+    address: "Estancia Mall, Capitol Commons, Pasig City",
+    active: true,
+    sortOrder: 5,
+  },
+  {
     id: "st_kodo_jazz",
     slug: "kodokodo-jazz-mall",
     brand: "KODOKODO",
@@ -56,7 +67,7 @@ export const MOCK_STORES: Store[] = [
     googleLocationId: null,
     address: "Jazz Mall, Makati City",
     active: true,
-    sortOrder: 5,
+    sortOrder: 6,
   },
 ];
 
@@ -66,5 +77,6 @@ export const BASELINE: Record<string, { avg: number; count: number }> = {
   st_greenhills: { avg: 4.65, count: 1215 },
   st_fairview: { avg: 4.58, count: 760 },
   st_tomas: { avg: 4.74, count: 1532 },
+  st_estancia: { avg: 4.66, count: 940 },
   st_kodo_jazz: { avg: 4.61, count: 410 },
 };

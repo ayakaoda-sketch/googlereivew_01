@@ -160,6 +160,6 @@ export interface DashboardData {
   brief: string;
   stores: StoreRow[];
   selected: StoreDetail | null;
-  /** All reviews of the period across stores, for the feed's "All stores" scope */
+  /** Reviews of the period across all active stores, feed-sorted. */
   allReviews: AnalyzedReview[];
 }

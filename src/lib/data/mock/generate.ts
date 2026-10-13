@@ -26,6 +26,7 @@ const VOLUME: Record<string, [number, number]> = {
   st_greenhills: [2, 6],
   st_fairview: [1, 4],
   st_tomas: [3, 7],
+  st_estancia: [2, 6],
   st_kodo_jazz: [2, 5],
 };
 

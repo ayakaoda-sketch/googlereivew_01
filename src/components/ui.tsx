@@ -30,7 +30,7 @@ export function Stars({ rating, locale = "en" }: { rating: number; locale?: Loca
   );
 }
 
-const BRAND_LABEL: Record<Brand, string> = {
+export const BRAND_LABEL: Record<Brand, string> = {
   WOLHWA_GALBI: "Wolhwa Galbi",
   KODOKODO: "KODOKODO",
 };
