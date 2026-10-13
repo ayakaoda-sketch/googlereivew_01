@@ -1,26 +1,25 @@
+import { getDictionary, type Locale } from "./i18n";
 import type { TopicKey } from "./types";
 
-// Mirrors the planned `topics` master table.
-export const TOPICS: { key: TopicKey; label: string }[] = [
-  { key: "food_quality", label: "Food Quality" },
-  { key: "flavor", label: "Flavor" },
-  { key: "meat_quality", label: "Meat Quality" },
-  { key: "service", label: "Service" },
-  { key: "staff", label: "Staff" },
-  { key: "waiting_time", label: "Waiting Time" },
-  { key: "cleanliness", label: "Cleanliness" },
-  { key: "price_value", label: "Price / Value" },
-  { key: "promotion", label: "Promotion" },
-  { key: "portion", label: "Portion" },
-  { key: "side_dishes", label: "Side Dishes" },
-  { key: "soup", label: "Soup" },
-  { key: "atmosphere", label: "Atmosphere" },
-  { key: "accessibility", label: "Accessibility" },
-  { key: "other", label: "Other" },
+// Mirrors the planned `topics` master table; labels live in the i18n dictionary.
+export const TOPIC_KEYS: TopicKey[] = [
+  "food_quality",
+  "flavor",
+  "meat_quality",
+  "service",
+  "staff",
+  "waiting_time",
+  "cleanliness",
+  "price_value",
+  "promotion",
+  "portion",
+  "side_dishes",
+  "soup",
+  "atmosphere",
+  "accessibility",
+  "other",
 ];
 
-const LABELS = Object.fromEntries(TOPICS.map((t) => [t.key, t.label])) as Record<TopicKey, string>;
-
-export function topicLabel(key: TopicKey): string {
-  return LABELS[key] ?? key;
+export function topicLabel(key: TopicKey, locale: Locale = "en"): string {
+  return getDictionary(locale).topics[key] ?? key;
 }

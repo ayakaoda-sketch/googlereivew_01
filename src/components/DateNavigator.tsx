@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MAX_RANGE_DAYS } from "@/lib/data/source";
 import { addDays, formatRange, rangeDays, type DateRange } from "@/lib/date";
+import { getDictionary, type Dictionary, type Locale } from "@/lib/i18n";
 import { dashboardHref } from "@/lib/url";
 
 /** Moves a period by whole periods, keeping its length and staying inside [min, max]. */
@@ -17,17 +18,17 @@ function shift(range: DateRange, periods: number, min: string, max: string): Dat
   return { from, to };
 }
 
-function presets(min: string, max: string): { label: string; range: DateRange }[] {
+function presets(t: Dictionary, min: string, max: string): { label: string; range: DateRange }[] {
   const clamp = (r: DateRange): DateRange => ({ from: r.from < min ? min : r.from, to: r.to });
   const monthStart = `${max.slice(0, 8)}01`;
   const lastMonthEnd = addDays(monthStart, -1);
   return [
-    { label: "Latest day", range: { from: max, to: max } },
-    { label: "Last 7 days", range: clamp({ from: addDays(max, -6), to: max }) },
-    { label: "Last 14 days", range: clamp({ from: addDays(max, -13), to: max }) },
-    { label: "Last 30 days", range: clamp({ from: addDays(max, -29), to: max }) },
-    { label: "This month", range: clamp({ from: monthStart, to: max }) },
-    { label: "Last month", range: clamp({ from: `${lastMonthEnd.slice(0, 8)}01`, to: lastMonthEnd }) },
+    { label: t.presetLatestDay, range: { from: max, to: max } },
+    { label: t.presetLastDays(7), range: clamp({ from: addDays(max, -6), to: max }) },
+    { label: t.presetLastDays(14), range: clamp({ from: addDays(max, -13), to: max }) },
+    { label: t.presetLastDays(30), range: clamp({ from: addDays(max, -29), to: max }) },
+    { label: t.presetThisMonth, range: clamp({ from: monthStart, to: max }) },
+    { label: t.presetLastMonth, range: clamp({ from: `${lastMonthEnd.slice(0, 8)}01`, to: lastMonthEnd }) },
   ].filter((p) => p.range.to >= min && p.range.from <= p.range.to);
 }
 
@@ -36,12 +37,15 @@ export function DateNavigator({
   minDate,
   maxDate,
   storeSlug,
+  locale,
 }: {
   range: DateRange;
   minDate: string;
   maxDate: string;
   storeSlug?: string;
+  locale: Locale;
 }) {
+  const t = getDictionary(locale);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange>(range);
@@ -50,7 +54,6 @@ export function DateNavigator({
   const days = rangeDays(range);
   const canPrev = range.from > minDate;
   const canNext = range.to < maxDate;
-  const unit = days === 1 ? "day" : "period";
 
   useEffect(() => {
     if (!open) return;
@@ -75,13 +78,13 @@ export function DateNavigator({
 
   const draftError =
     !draft.from || !draft.to
-      ? "Choose both dates."
+      ? t.errBothDates
       : draft.from > draft.to
-        ? "Start date must be on or before the end date."
+        ? t.errOrder
         : draft.from < minDate || draft.to > maxDate
-          ? "Dates are outside the available data."
+          ? t.errOutside
           : rangeDays(draft) > MAX_RANGE_DAYS
-            ? `Choose ${MAX_RANGE_DAYS} days or fewer.`
+            ? t.errTooLong(MAX_RANGE_DAYS)
             : null;
 
   const arrow =
@@ -93,7 +96,11 @@ export function DateNavigator({
   return (
     <div ref={rootRef} className="relative flex items-center gap-1.5">
       {canPrev ? (
-        <Link href={dashboardHref(shift(range, -1, minDate, maxDate), storeSlug)} className={arrow} aria-label={`Previous ${unit}`}>
+        <Link
+          href={dashboardHref(shift(range, -1, minDate, maxDate), storeSlug)}
+          className={arrow}
+          aria-label={days === 1 ? t.prevDay : t.prevPeriod}
+        >
           ‹
         </Link>
       ) : (
@@ -110,13 +117,17 @@ export function DateNavigator({
         }}
         className="flex h-8 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2"
       >
-        <span className="tabular-nums">{formatRange(range)}</span>
-        {days > 1 && <span className="text-xs font-normal text-muted">{days}d</span>}
+        <span className="tabular-nums">{formatRange(range, locale)}</span>
+        {days > 1 && <span className="text-xs font-normal text-muted">{t.daysShort(days)}</span>}
         <span aria-hidden className="text-[10px] text-muted">▾</span>
       </button>
 
       {canNext ? (
-        <Link href={dashboardHref(shift(range, 1, minDate, maxDate), storeSlug)} className={arrow} aria-label={`Next ${unit}`}>
+        <Link
+          href={dashboardHref(shift(range, 1, minDate, maxDate), storeSlug)}
+          className={arrow}
+          aria-label={days === 1 ? t.nextDay : t.nextPeriod}
+        >
           ›
         </Link>
       ) : (
@@ -128,19 +139,19 @@ export function DateNavigator({
           href={dashboardHref({ from: addDays(maxDate, -(days - 1)), to: maxDate }, storeSlug)}
           className="ml-1 h-8 rounded-lg px-2 text-xs leading-8 font-medium text-series hover:underline"
         >
-          Latest
+          {t.latest}
         </Link>
       )}
 
       {open && (
         <div
           role="dialog"
-          aria-label="Select review period"
+          aria-label={t.selectPeriod}
           className="absolute right-0 top-10 z-20 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-3 shadow-lg"
         >
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">Quick select</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.quickSelect}</div>
           <div className="mt-2 grid grid-cols-2 gap-1.5">
-            {presets(minDate, maxDate).map((p) => {
+            {presets(t, minDate, maxDate).map((p) => {
               const active = p.range.from === range.from && p.range.to === range.to;
               return (
                 <button
@@ -164,10 +175,10 @@ export function DateNavigator({
               if (!draftError) go(draft);
             }}
           >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">Custom range</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.customRange}</div>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <label className="text-xs text-ink-2">
-                From
+                {t.from}
                 <input
                   type="date"
                   className={`mt-1 ${dateInput}`}
@@ -178,7 +189,7 @@ export function DateNavigator({
                 />
               </label>
               <label className="text-xs text-ink-2">
-                To
+                {t.to}
                 <input
                   type="date"
                   className={`mt-1 ${dateInput}`}
@@ -190,11 +201,7 @@ export function DateNavigator({
               </label>
             </div>
             <p className="mt-2 min-h-4 text-[11px] text-ink-2">
-              {draftError ? (
-                <span className="text-crit">{draftError}</span>
-              ) : (
-                `${rangeDays(draft)} day${rangeDays(draft) === 1 ? "" : "s"} · compared with the ${rangeDays(draft) === 1 ? "previous day" : "previous period of the same length"}`
-              )}
+              {draftError ? <span className="text-crit">{draftError}</span> : t.rangeHint(rangeDays(draft))}
             </p>
             <div className="mt-2 flex justify-end gap-2">
               <button
@@ -202,14 +209,14 @@ export function DateNavigator({
                 onClick={() => setOpen(false)}
                 className="h-8 rounded-lg px-3 text-xs font-medium text-ink-2 hover:bg-surface-2"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 type="submit"
                 disabled={draftError !== null}
                 className="h-8 rounded-lg bg-ink px-3 text-xs font-medium text-surface disabled:opacity-40"
               >
-                Apply
+                {t.apply}
               </button>
             </div>
           </form>

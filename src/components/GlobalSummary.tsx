@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { formatRangeShort, type DateRange } from "@/lib/date";
+import { getDictionary, type Locale } from "@/lib/i18n";
 import type { GlobalKpis } from "@/lib/types";
 import { Card, Delta, SectionTitle, formatRating } from "./ui";
 
@@ -28,14 +29,17 @@ export function GlobalSummary({
   brief,
   range,
   compareRange,
+  locale,
 }: {
   kpis: GlobalKpis;
   brief: string;
   range: DateRange;
   compareRange: DateRange;
+  locale: Locale;
 }) {
+  const t = getDictionary(locale);
   const single = range.from === range.to;
-  const vs = `vs ${formatRangeShort(compareRange)}`;
+  const vs = t.vs(formatRangeShort(compareRange, locale));
   const ratingDelta =
     kpis.avgRating !== null && kpis.prevAvgRating !== null ? kpis.avgRating - kpis.prevAvgRating : null;
 
@@ -43,12 +47,12 @@ export function GlobalSummary({
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="grid grid-cols-2 gap-3">
         <Tile
-          label="New Reviews"
+          label={t.newReviews}
           value={`+${kpis.newReviews}`}
           sub={<Delta value={kpis.newReviews - kpis.prevNewReviews} suffix={vs} />}
         />
         <Tile
-          label="Avg New Review Rating"
+          label={t.avgNewReviewRating}
           value={
             <>
               {formatRating(kpis.avgRating)} <span className="text-xl text-muted">★</span>
@@ -57,16 +61,16 @@ export function GlobalSummary({
           sub={<Delta value={ratingDelta} digits={1} suffix={vs} goodWhenUp />}
         />
         <Tile
-          label="Positive (4–5★)"
+          label={t.positiveTile}
           value={<span className="text-good">{kpis.positive}</span>}
-          sub={<span className="text-ink-2">{kpis.neutral} neutral (3★)</span>}
+          sub={<span className="text-ink-2">{t.neutralSub(kpis.neutral)}</span>}
         />
         <Tile
-          label="Critical (1–2★)"
+          label={t.criticalTile}
           value={<span className={kpis.negative > 0 ? "text-crit" : ""}>{kpis.negative}</span>}
           sub={
             <span className="text-ink-2">
-              {kpis.negative > 0 ? (single ? "Needs review today" : "Needs review") : "No critical reviews"}
+              {kpis.negative > 0 ? (single ? t.needsReviewToday : t.needsReview) : t.noCriticalReviews}
             </span>
           }
           tone={kpis.negative > 0 ? "!border-crit-dot/40 !bg-crit-soft" : ""}
@@ -74,8 +78,8 @@ export function GlobalSummary({
       </div>
 
       <Card className="flex flex-col">
-        <SectionTitle right={<span className="text-[11px] text-muted">AI · 한국어</span>}>
-          Philippines {single ? "Daily" : "Period"} AI Brief
+        <SectionTitle right={<span className="text-[11px] text-muted">{t.aiTag}</span>}>
+          {t.briefTitle(single)}
         </SectionTitle>
         <ul className="space-y-1.5 text-sm leading-relaxed">
           {brief.split("\n").map((line, i) => (

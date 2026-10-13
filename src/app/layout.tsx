@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,15 +14,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Philippines Review Dashboard",
-  description: "Daily Google review report for Wolhwa Galbi and KODOKODO stores in the Philippines",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getDictionary(await getLocale()).appTitle,
+    description: "Daily Google review report for Wolhwa Galbi and KODOKODO stores in the Philippines",
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>

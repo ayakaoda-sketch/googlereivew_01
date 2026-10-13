@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { DateRange } from "@/lib/date";
+import { getDictionary, type Locale } from "@/lib/i18n";
 import type { StoreRow } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
 import { BrandBadge, Delta, StatusBadge, formatRating } from "./ui";
@@ -20,24 +21,30 @@ export function StoreList({
   rows,
   range,
   selectedSlug,
+  locale,
 }: {
   rows: StoreRow[];
   range: DateRange;
   selectedSlug?: string;
+  locale: Locale;
 }) {
+  const t = getDictionary(locale);
   const overall = overallCumulative(rows);
 
   return (
-    <nav aria-label="Stores">
+    <nav aria-label={t.stores}>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
-          Stores · {rows.length}
+          {t.stores} · {rows.length}
         </h2>
         {overall && (
           <p className="text-xs text-ink-2">
-            All stores cumulative{" "}
+            {t.allStoresCumulative}{" "}
             <span className="font-semibold tabular-nums text-ink">{overall.avg.toFixed(2)} ★</span>
-            <span className="text-muted"> · {overall.total.toLocaleString("en-US")} Google reviews</span>
+            <span className="text-muted">
+              {" "}
+              · {overall.total.toLocaleString("en-US")} {t.googleReviews}
+            </span>
           </p>
         )}
       </div>
@@ -65,13 +72,13 @@ export function StoreList({
                       <BrandBadge brand={store.brand} />
                     </div>
                   </div>
-                  <StatusBadge status={today.status} />
+                  <StatusBadge status={today.status} locale={locale} />
                 </div>
 
                 <div className="mt-3 flex items-baseline justify-between">
                   <span className="text-xl font-semibold tabular-nums">
                     +{today.newReviewCount}
-                    <span className="ml-1 text-xs font-normal text-muted">new</span>
+                    <span className="ml-1 text-xs font-normal text-muted">{t.newShort}</span>
                   </span>
                   <span className="text-sm font-medium tabular-nums">
                     {formatRating(today.avgRating)} <span className="text-muted">★</span>
@@ -80,18 +87,20 @@ export function StoreList({
 
                 <div className="mt-1 flex items-center justify-between text-xs">
                   <span className="text-ink-2">
-                    <span className="text-good">{today.positiveCount} pos</span>
+                    <span className="text-good">
+                      {today.positiveCount} {t.pos}
+                    </span>
                     {" · "}
                     <span className={today.negativeCount > 0 ? "font-semibold text-crit" : ""}>
-                      {today.negativeCount} neg
+                      {today.negativeCount} {t.neg}
                     </span>
                   </span>
-                  <Delta value={today.newReviewCount - prev.newReviewCount} suffix="vs prev" />
+                  <Delta value={today.newReviewCount - prev.newReviewCount} suffix={t.vsPrev} />
                 </div>
 
                 <div className="mt-3 border-t border-line pt-2">
                   <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                    Cumulative (Google)
+                    {t.cumulativeGoogle}
                   </div>
                   <div className="mt-0.5 flex items-baseline justify-between gap-2">
                     <span className="text-base font-semibold tabular-nums">
@@ -108,7 +117,7 @@ export function StoreList({
                   <div className="text-[11px] tabular-nums text-ink-2">
                     {snapshot ? (
                       <>
-                        {snapshot.googleTotalReviews.toLocaleString("en-US")} reviews
+                        {t.reviewsCount(snapshot.googleTotalReviews.toLocaleString("en-US"))}
                         {prevSnapshot && (
                           <span className="text-muted">
                             {" "}
@@ -117,7 +126,7 @@ export function StoreList({
                         )}
                       </>
                     ) : (
-                      "No data"
+                      t.noData
                     )}
                   </div>
                 </div>

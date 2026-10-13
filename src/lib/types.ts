@@ -57,6 +57,8 @@ export interface TopicMention {
   polarity: Polarity;
   /** Short insight label, e.g. "Friendly staff", "Flavor too mild" */
   label: string;
+  /** Korean version of `label`, e.g. "친절한 직원" */
+  labelKo: string;
 }
 
 /** review_analysis */
@@ -65,6 +67,7 @@ export interface ReviewAnalysis {
   sentiment: AiSentiment;
   sentimentScore: number; // -1..1
   topics: TopicMention[];
+  summaryEn: string | null;
   summaryKo: string | null;
   isCritical: boolean;
   analyzedAt: string;
@@ -86,6 +89,7 @@ export type StoreStatus = "good" | "watch" | "critical";
 
 export interface InsightItem {
   label: string;
+  labelKo: string;
   topic: TopicKey;
   mentions: number; // in the selected period
   mentions7d: number; // selected period, widened to at least the last 7 days
@@ -103,6 +107,7 @@ export interface DailyStoreSummary {
   negativeCount: number;
   criticalCount: number;
   status: StoreStatus;
+  /** In the dashboard's requested locale. */
   aiSummary: string;
   positiveInsights: InsightItem[];
   negativeInsights: InsightItem[];

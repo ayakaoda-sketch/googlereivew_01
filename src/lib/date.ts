@@ -1,5 +1,7 @@
 // Dates are passed around as "YYYY-MM-DD" strings in Asia/Manila local time.
 
+import type { Locale } from "./i18n";
+
 export const TIMEZONE = "Asia/Manila";
 
 const ymdFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -33,14 +35,16 @@ export function isValidDate(value: unknown): value is string {
   return addDays(value, 0) === value;
 }
 
+const INTL_LOCALE: Record<Locale, string> = { en: "en-US", ko: "ko-KR" };
+
 function utcNoon(date: string): Date {
   const [y, m, d] = date.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d, 12));
 }
 
-/** "Oct 5, 2026" */
-export function formatLong(date: string): string {
-  return utcNoon(date).toLocaleDateString("en-US", {
+/** "Oct 5, 2026" · "2026년 10월 5일" */
+export function formatLong(date: string, locale: Locale = "en"): string {
+  return utcNoon(date).toLocaleDateString(INTL_LOCALE[locale], {
     timeZone: "UTC",
     month: "short",
     day: "numeric",
@@ -48,9 +52,9 @@ export function formatLong(date: string): string {
   });
 }
 
-/** "Oct 5" */
-export function formatShort(date: string): string {
-  return utcNoon(date).toLocaleDateString("en-US", {
+/** "Oct 5" · "10월 5일" */
+export function formatShort(date: string, locale: Locale = "en"): string {
+  return utcNoon(date).toLocaleDateString(INTL_LOCALE[locale], {
     timeZone: "UTC",
     month: "short",
     day: "numeric",
@@ -58,9 +62,9 @@ export function formatShort(date: string): string {
 }
 
 /** "Oct 6, 2026 · 06:12" in Manila time */
-export function formatDateTime(iso: string): string {
+export function formatDateTime(iso: string, locale: Locale = "en"): string {
   const d = new Date(iso);
-  const date = d.toLocaleDateString("en-US", {
+  const date = d.toLocaleDateString(INTL_LOCALE[locale], {
     timeZone: TIMEZONE,
     month: "short",
     day: "numeric",
@@ -96,14 +100,23 @@ export function previousRange(range: DateRange): DateRange {
   return { from: addDays(range.from, -n), to: addDays(range.from, -1) };
 }
 
-/** "Oct 5, 2026" · "Oct 6 – Oct 12, 2026" · "Dec 29, 2025 – Jan 4, 2026" */
-export function formatRange({ from, to }: DateRange): string {
-  if (from === to) return formatLong(from);
-  if (from.slice(0, 4) === to.slice(0, 4)) return `${formatShort(from)} – ${formatLong(to)}`;
-  return `${formatLong(from)} – ${formatLong(to)}`;
+/**
+ * "Oct 5, 2026" · "Oct 6 – Oct 12, 2026" · "Dec 29, 2025 – Jan 4, 2026".
+ * Korean puts the year first: "2026년 10월 6일 – 10월 12일".
+ */
+export function formatRange({ from, to }: DateRange, locale: Locale = "en"): string {
+  if (from === to) return formatLong(from, locale);
+  if (from.slice(0, 4) === to.slice(0, 4)) {
+    return locale === "ko"
+      ? `${formatLong(from, locale)} – ${formatShort(to, locale)}`
+      : `${formatShort(from, locale)} – ${formatLong(to, locale)}`;
+  }
+  return `${formatLong(from, locale)} – ${formatLong(to, locale)}`;
 }
 
 /** "Oct 5" · "Sep 29 – Oct 5" */
-export function formatRangeShort({ from, to }: DateRange): string {
-  return from === to ? formatShort(from) : `${formatShort(from)} – ${formatShort(to)}`;
+export function formatRangeShort({ from, to }: DateRange, locale: Locale = "en"): string {
+  return from === to
+    ? formatShort(from, locale)
+    : `${formatShort(from, locale)} – ${formatShort(to, locale)}`;
 }

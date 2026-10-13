@@ -10,6 +10,7 @@ import {
 import { mockSummarizer } from "../../ai/mock-summarizer";
 import type { StoreSummaryInput } from "../../ai/summarizer";
 import { addDays, dateRange, datesIn, previousRange, rangeDays, type DateRange } from "../../date";
+import type { Locale } from "../../i18n";
 import type {
   AnalyzedReview,
   DailyStoreSummary,
@@ -68,13 +69,13 @@ function summaryInput(store: Store, range: DateRange): StoreSummaryInput {
   };
 }
 
-function toDailySummary(input: StoreSummaryInput): DailyStoreSummary {
+function toDailySummary(input: StoreSummaryInput, locale: Locale): DailyStoreSummary {
   return {
     date: input.range.to,
     storeId: input.store.id,
     ...input.counts,
     status: input.status,
-    aiSummary: summarizer.storeSummary(input),
+    aiSummary: summarizer.storeSummary(input, locale),
     positiveInsights: input.positiveInsights,
     negativeInsights: input.negativeInsights,
   };
@@ -106,15 +107,15 @@ export const mockDataSource: DataSource = {
     return MOCK_START_DATE;
   },
 
-  async getDashboard(range, storeSlug) {
+  async getDashboard(range, storeSlug, locale) {
     const compareRange = previousRange(range);
     const stores = activeStores();
 
     const inputs = stores.map((s) => summaryInput(s, range));
     const rows: StoreRow[] = stores.map((store, i) => ({
       store,
-      today: toDailySummary(inputs[i]),
-      prev: toDailySummary(summaryInput(store, compareRange)),
+      today: toDailySummary(inputs[i], locale),
+      prev: toDailySummary(summaryInput(store, compareRange), locale),
       snapshot: snapshot(store, range.to),
       prevSnapshot: snapshot(store, compareRange.to),
     }));
@@ -157,12 +158,15 @@ export const mockDataSource: DataSource = {
       minDate: MOCK_START_DATE,
       maxDate: latestReviewDate(),
       global,
-      brief: summarizer.dailyBrief({
-        range,
-        totalNew: global.newReviews,
-        prevTotalNew: global.prevNewReviews,
-        stores: inputs,
-      }),
+      brief: summarizer.dailyBrief(
+        {
+          range,
+          totalNew: global.newReviews,
+          prevTotalNew: global.prevNewReviews,
+          stores: inputs,
+        },
+        locale,
+      ),
       stores: rows,
       selected,
       allReviews: sortForFeed(allCurrent),

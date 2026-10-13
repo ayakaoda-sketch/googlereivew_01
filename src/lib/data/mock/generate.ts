@@ -1,6 +1,6 @@
 import { addDays } from "../../date";
 import type { AnalyzedReview, Store } from "../../types";
-import { REVIEWER_NAMES, TEMPLATES, templatePool, type TemplateId } from "./templates";
+import { LABEL_KO, REVIEWER_NAMES, TEMPLATES, templatePool, type TemplateId } from "./templates";
 
 export const MOCK_START_DATE = "2026-09-01";
 
@@ -105,7 +105,13 @@ export function generateReviews(store: Store, date: string): AnalyzedReview[] {
               reviewId: id,
               sentiment: t.sentiment,
               sentimentScore: { positive: 0.8, mixed: 0.2, neutral: 0, negative: -0.7 }[t.sentiment],
-              topics: t.mentions.map(([topic, polarity, label]) => ({ topic, polarity, label })),
+              topics: t.mentions.map(([topic, polarity, label]) => ({
+                topic,
+                polarity,
+                label,
+                labelKo: LABEL_KO[label] ?? label,
+              })),
+              summaryEn: t.summaryEn,
               summaryKo: t.summaryKo,
               isCritical: t.rating <= 2,
               analyzedAt,

@@ -64,11 +64,11 @@ export function buildInsights(
   polarity: Polarity,
 ): InsightItem[] {
   const tally = (reviews: AnalyzedReview[]) => {
-    const map = new Map<string, { topic: TopicKey; count: number }>();
+    const map = new Map<string, { topic: TopicKey; labelKo: string; count: number }>();
     for (const r of reviews) {
       for (const m of r.analysis?.topics ?? []) {
         if (m.polarity !== polarity) continue;
-        const entry = map.get(m.label) ?? { topic: m.topic, count: 0 };
+        const entry = map.get(m.label) ?? { topic: m.topic, labelKo: m.labelKo, count: 0 };
         entry.count++;
         map.set(m.label, entry);
       }
@@ -81,6 +81,7 @@ export function buildInsights(
 
   const items: InsightItem[] = [...todayMap.entries()].map(([label, v]) => ({
     label,
+    labelKo: v.labelKo,
     topic: v.topic,
     mentions: v.count,
     mentions7d: weekMap.get(label)?.count ?? v.count,

@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { formatShort, type DateRange } from "@/lib/date";
+import { getDictionary, type Locale } from "@/lib/i18n";
 import type { TrendPoint } from "@/lib/types";
 
 const axisTick = { fill: "var(--muted)", fontSize: 11 };
@@ -21,30 +22,42 @@ function TrendTooltip({
   active,
   payload,
   kind,
+  locale,
 }: {
   active?: boolean;
   payload?: { payload: TrendPoint }[];
   kind: "count" | "rating";
+  locale: Locale;
 }) {
   if (!active || !payload?.length) return null;
+  const t = getDictionary(locale);
   const p = payload[0].payload;
   return (
     <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-sm">
-      <div className="text-muted">{formatShort(p.date)}</div>
+      <div className="text-muted">{formatShort(p.date, locale)}</div>
       <div className="font-semibold tabular-nums text-ink">
         {kind === "count"
-          ? `${p.newReviews} new review${p.newReviews === 1 ? "" : "s"}`
+          ? t.newReviewsCount(p.newReviews)
           : p.avgRating === null
-            ? "No reviews"
-            : `${p.avgRating.toFixed(2)} ★ avg`}
+            ? t.noReviews
+            : t.avgStars(p.avgRating.toFixed(2))}
       </div>
     </div>
   );
 }
 
-export function TrendCharts({ trend, range }: { trend: TrendPoint[]; range: DateRange }) {
+export function TrendCharts({
+  trend,
+  range,
+  locale,
+}: {
+  trend: TrendPoint[];
+  range: DateRange;
+  locale: Locale;
+}) {
+  const t = getDictionary(locale);
   // Compact "9/29" ticks so 7 labels fit narrow chart widths; tooltips show the full date.
-  const data = trend.map((t) => ({ ...t, label: `${Number(t.date.slice(5, 7))}/${Number(t.date.slice(8))}` }));
+  const data = trend.map((p) => ({ ...p, label: `${Number(p.date.slice(5, 7))}/${Number(p.date.slice(8))}` }));
   const inRange = (date: string) => date >= range.from && date <= range.to;
   // Long periods: let recharts thin the ticks and drop the per-point dots.
   const dense = data.length > 14;
@@ -53,14 +66,14 @@ export function TrendCharts({ trend, range }: { trend: TrendPoint[]; range: Date
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <figure>
-        <figcaption className="mb-1 text-xs font-medium text-ink-2">Daily New Reviews</figcaption>
+        <figcaption className="mb-1 text-xs font-medium text-ink-2">{t.dailyNewReviews}</figcaption>
         <div className="h-36">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -24 }} barCategoryGap="28%">
               <CartesianGrid vertical={false} stroke="var(--line)" />
               <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={{ stroke: "var(--line)" }} interval={tickInterval} minTickGap={8} />
               <YAxis allowDecimals={false} tick={axisTick} tickLine={false} axisLine={false} width={40} />
-              <Tooltip cursor={{ fill: "var(--surface-2)" }} content={<TrendTooltip kind="count" />} />
+              <Tooltip cursor={{ fill: "var(--surface-2)" }} content={<TrendTooltip kind="count" locale={locale} />} />
               <Bar dataKey="newReviews" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false}>
                 {data.map((d) => (
                   <Cell key={d.date} fill={inRange(d.date) ? "var(--series)" : "var(--series-soft)"} />
@@ -72,14 +85,14 @@ export function TrendCharts({ trend, range }: { trend: TrendPoint[]; range: Date
       </figure>
 
       <figure>
-        <figcaption className="mb-1 text-xs font-medium text-ink-2">Avg Rating of New Reviews</figcaption>
+        <figcaption className="mb-1 text-xs font-medium text-ink-2">{t.avgRatingOfNew}</figcaption>
         <div className="h-36">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
               <CartesianGrid vertical={false} stroke="var(--line)" />
               <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={{ stroke: "var(--line)" }} interval={tickInterval} minTickGap={8} />
               <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={axisTick} tickLine={false} axisLine={false} width={40} />
-              <Tooltip cursor={{ stroke: "var(--muted)", strokeDasharray: "3 3" }} content={<TrendTooltip kind="rating" />} />
+              <Tooltip cursor={{ stroke: "var(--muted)", strokeDasharray: "3 3" }} content={<TrendTooltip kind="rating" locale={locale} />} />
               <Line
                 type="linear"
                 dataKey="avgRating"
@@ -96,20 +109,20 @@ export function TrendCharts({ trend, range }: { trend: TrendPoint[]; range: Date
       </figure>
 
       <table className="sr-only">
-        <caption>Last {trend.length} days</caption>
+        <caption>{t.lastDays(trend.length)}</caption>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>New reviews</th>
-            <th>Average rating</th>
+            <th>{t.date}</th>
+            <th>{t.newReviews}</th>
+            <th>{t.averageRating}</th>
           </tr>
         </thead>
         <tbody>
-          {trend.map((t) => (
-            <tr key={t.date}>
-              <td>{t.date}</td>
-              <td>{t.newReviews}</td>
-              <td>{t.avgRating?.toFixed(2) ?? "–"}</td>
+          {trend.map((p) => (
+            <tr key={p.date}>
+              <td>{p.date}</td>
+              <td>{p.newReviews}</td>
+              <td>{p.avgRating?.toFixed(2) ?? "–"}</td>
             </tr>
           ))}
         </tbody>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { getDictionary, type Locale } from "@/lib/i18n";
 import type { Brand, StoreStatus } from "@/lib/types";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -20,10 +21,10 @@ export function formatRating(value: number | null, digits = 1): string {
   return value === null ? "–" : value.toFixed(digits);
 }
 
-export function Stars({ rating }: { rating: number }) {
+export function Stars({ rating, locale = "en" }: { rating: number; locale?: Locale }) {
   const tone = rating <= 2 ? "text-crit" : rating === 3 ? "text-warn" : "text-ink";
   return (
-    <span className={`font-semibold tabular-nums ${tone}`} aria-label={`${rating} out of 5 stars`}>
+    <span className={`font-semibold tabular-nums ${tone}`} aria-label={getDictionary(locale).starsAria(rating)}>
       ★ {rating}
     </span>
   );
@@ -42,21 +43,30 @@ export function BrandBadge({ brand }: { brand: Brand }) {
   );
 }
 
-const STATUS: Record<StoreStatus, { label: string; icon: string; className: string }> = {
-  good: { label: "Good", icon: "●", className: "bg-good-soft text-good" },
-  watch: { label: "Watch", icon: "▲", className: "bg-warn-soft text-warn" },
-  critical: { label: "Critical", icon: "■", className: "bg-crit-soft text-crit" },
+const STATUS: Record<StoreStatus, { icon: string; className: string }> = {
+  good: { icon: "●", className: "bg-good-soft text-good" },
+  watch: { icon: "▲", className: "bg-warn-soft text-warn" },
+  critical: { icon: "■", className: "bg-crit-soft text-crit" },
 };
 
-export function StatusBadge({ status, compact = false }: { status: StoreStatus; compact?: boolean }) {
+export function StatusBadge({
+  status,
+  compact = false,
+  locale = "en",
+}: {
+  status: StoreStatus;
+  compact?: boolean;
+  locale?: Locale;
+}) {
   const s = STATUS[status];
+  const label = getDictionary(locale).status[status];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${s.className}`}
-      title={s.label}
+      title={label}
     >
       <span aria-hidden className="text-[8px]">{s.icon}</span>
-      {compact ? <span className="sr-only">{s.label}</span> : s.label}
+      {compact ? <span className="sr-only">{label}</span> : label}
     </span>
   );
 }

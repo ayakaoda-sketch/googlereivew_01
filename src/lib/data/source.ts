@@ -1,10 +1,12 @@
 import { addDays, isValidDate, rangeDays, todayManila, type DateRange } from "../date";
+import type { Locale } from "../i18n";
 import type { DashboardData } from "../types";
 
 export interface DataSource {
   /** Earliest date with collected data. */
   minDate(): Promise<string>;
-  getDashboard(range: DateRange, storeSlug: string | undefined): Promise<DashboardData>;
+  /** `locale` picks the language of AI-written text (summaries, brief). */
+  getDashboard(range: DateRange, storeSlug: string | undefined, locale: Locale): Promise<DashboardData>;
 }
 
 /** Longest selectable period, in days. */

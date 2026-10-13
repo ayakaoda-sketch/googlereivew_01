@@ -4,6 +4,7 @@
 import type { AnalyzedReview, InsightItem, Store, StoreStatus } from "../types";
 import type { DayCounts } from "../aggregate";
 import type { DateRange } from "../date";
+import type { Locale } from "../i18n";
 
 export interface StoreSummaryInput {
   store: Store;
@@ -25,8 +26,8 @@ export interface DailyBriefInput {
 }
 
 export interface Summarizer {
-  /** Korean, operations-oriented summary for one store over the period. */
-  storeSummary(input: StoreSummaryInput): string;
-  /** Korean Philippines-wide brief for the period, ordered by the PRD priority rules. */
-  dailyBrief(input: DailyBriefInput): string;
+  /** Operations-oriented summary for one store over the period. */
+  storeSummary(input: StoreSummaryInput, locale: Locale): string;
+  /** Philippines-wide brief for the period, ordered by the PRD priority rules. */
+  dailyBrief(input: DailyBriefInput, locale: Locale): string;
 }
