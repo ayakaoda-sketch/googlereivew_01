@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { formatDateTime, type DateRange } from "@/lib/date";
 import { getDictionary, type Dictionary, type Locale } from "@/lib/i18n";
 import { TOPIC_KEYS, topicLabel } from "@/lib/topics";
-import type { AiSentiment, AnalyzedReview, TopicKey } from "@/lib/types";
+import type { AiSentiment, AnalyzedReview, Brand, TopicKey } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
 import { Card, SectionTitle, Stars } from "./ui";
 
@@ -19,6 +19,12 @@ const FILTERS: { key: Filter; label: (t: Dictionary) => string }[] = [
   { key: "negative", label: (t) => t.negative },
   { key: "critical", label: (t) => t.filterCritical },
 ];
+
+/** Store-name chip in the brand's color (same hues as the store cards, stronger). */
+const STORE_CHIP: Record<Brand, string> = {
+  WOLHWA_GALBI: "bg-crit-soft text-crit",
+  KODOKODO: "bg-warn-soft text-warn",
+};
 
 const SENTIMENT_STYLE: Record<AiSentiment, string> = {
   positive: "text-good",
@@ -52,7 +58,7 @@ export function ReviewFeed({
 }: {
   /** Reviews of every store; narrowed here by `selectedSlug`. */
   reviews: AnalyzedReview[];
-  stores: { id: string; slug: string; name: string }[];
+  stores: { id: string; slug: string; name: string; brand: Brand }[];
   /** From `?store=`; undefined shows all stores. */
   selectedSlug?: string;
   range: DateRange;
@@ -64,7 +70,7 @@ export function ReviewFeed({
   const [filter, setFilter] = useState<Filter>("critical");
   const [topic, setTopic] = useState<TopicKey | "">("");
 
-  const storeName = Object.fromEntries(stores.map((s) => [s.id, s.name]));
+  const storeById = Object.fromEntries(stores.map((s) => [s.id, s]));
   const selectedId = stores.find((s) => s.slug === selectedSlug)?.id;
 
   const visible = useMemo(() => {
@@ -150,7 +156,13 @@ export function ReviewFeed({
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <Stars rating={r.rating} locale={locale} />
                   <span className="font-medium">{r.reviewerName}</span>
-                  {!selectedId && <span className="text-xs text-ink-2">{storeName[r.storeId]}</span>}
+                  {!selectedId && storeById[r.storeId] && (
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-xs font-semibold ${STORE_CHIP[storeById[r.storeId].brand]}`}
+                    >
+                      {storeById[r.storeId].name}
+                    </span>
+                  )}
                   <span className="text-xs text-muted">{formatDateTime(r.googleCreatedAt, locale)}</span>
                   {r.analysis && (
                     <span className={`text-xs font-medium capitalize ${SENTIMENT_STYLE[r.analysis.sentiment]}`}>

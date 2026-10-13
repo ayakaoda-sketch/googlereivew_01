@@ -17,10 +17,6 @@ export function SectionTitle({ children, right }: { children: ReactNode; right?:
   );
 }
 
-export function formatRating(value: number | null, digits = 1): string {
-  return value === null ? "–" : value.toFixed(digits);
-}
-
 export function Stars({ rating, locale = "en" }: { rating: number; locale?: Locale }) {
   const tone = rating <= 2 ? "text-crit" : rating === 3 ? "text-warn" : "text-ink";
   return (
@@ -34,14 +30,6 @@ export const BRAND_LABEL: Record<Brand, string> = {
   WOLHWA_GALBI: "Wolhwa Galbi",
   KODOKODO: "KODOKODO",
 };
-
-export function BrandBadge({ brand }: { brand: Brand }) {
-  return (
-    <span className="inline-flex items-center rounded border border-line px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-ink-2">
-      {BRAND_LABEL[brand]}
-    </span>
-  );
-}
 
 /**
  * Signed change vs. the comparison day. `goodWhenUp` colors rating changes;

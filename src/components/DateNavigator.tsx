@@ -147,7 +147,7 @@ export function DateNavigator({
         <div
           role="dialog"
           aria-label={t.selectPeriod}
-          className="absolute right-0 top-10 z-20 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-3 shadow-lg"
+          className="absolute left-0 top-10 z-20 w-[min(20rem,calc(100vw-2rem))] sm:left-auto sm:right-0 rounded-xl border border-line bg-surface p-3 shadow-lg"
         >
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.quickSelect}</div>
           <div className="mt-2 grid grid-cols-2 gap-1.5">

@@ -89,9 +89,8 @@ export function buildDashboard(
     snapshot: snapshot(store, range.to),
     prevSnapshot: snapshot(store, compareRange.to),
   }));
-  rows.sort(
-    (a, b) => b.today.newReviewCount - a.today.newReviewCount || a.store.sortOrder - b.store.sortOrder,
-  );
+  // Fixed order from the stores tab's sort_order, so cards don't move between days.
+  rows.sort((a, b) => a.store.sortOrder - b.store.sortOrder);
 
   const allCurrent = stores.flatMap((s) => reviewsIn(s, range));
   const allPrev = stores.flatMap((s) => reviewsIn(s, compareRange));

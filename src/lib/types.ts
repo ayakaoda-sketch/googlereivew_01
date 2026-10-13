@@ -106,6 +106,8 @@ export interface DailyStoreSummary {
   neutralCount: number;
   negativeCount: number;
   criticalCount: number;
+  /** Reviews per star rating: index 0 is 1★, index 4 is 5★. */
+  ratingCounts: [number, number, number, number, number];
   status: StoreStatus;
   /** In the dashboard's requested locale. */
   aiSummary: string;

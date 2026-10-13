@@ -31,6 +31,8 @@ export interface DayCounts {
   neutralCount: number;
   negativeCount: number;
   criticalCount: number;
+  /** Reviews per star rating: index 0 is 1★, index 4 is 5★. */
+  ratingCounts: [number, number, number, number, number];
 }
 
 export function countDay(reviews: AnalyzedReview[]): DayCounts {
@@ -41,9 +43,11 @@ export function countDay(reviews: AnalyzedReview[]): DayCounts {
     neutralCount: 0,
     negativeCount: 0,
     criticalCount: 0,
+    ratingCounts: [0, 0, 0, 0, 0],
   };
   for (const r of reviews) {
     counts[`${ratingBucket(r.rating)}Count`]++;
+    counts.ratingCounts[r.rating - 1]++;
     if (isCriticalRating(r.rating)) counts.criticalCount++;
   }
   return counts;

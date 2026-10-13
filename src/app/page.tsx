@@ -23,12 +23,12 @@ export default async function Page(props: PageProps<"/">) {
   const feedStores = data.stores
     .map((r) => r.store)
     .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((s) => ({ id: s.id, slug: s.slug, name: s.shortName }));
+    .map((s) => ({ id: s.id, slug: s.slug, name: s.shortName, brand: s.brand }));
   const days = rangeDays(data.range);
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 pb-10 lg:px-6">
-      <header className="sticky top-0 z-10 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-page/90 px-4 py-3 backdrop-blur lg:-mx-6 lg:px-6">
+      <header className="z-10 -mx-4 mb-4 sm:sticky sm:top-0 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-page/90 px-4 py-3 backdrop-blur lg:-mx-6 lg:px-6">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{t.appTitle}</p>
           <h1 className="text-lg font-semibold tracking-tight">
