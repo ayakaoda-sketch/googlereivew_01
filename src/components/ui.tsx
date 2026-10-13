@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getDictionary, type Locale } from "@/lib/i18n";
-import type { Brand, StoreStatus } from "@/lib/types";
+import type { Brand } from "@/lib/types";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
@@ -39,34 +39,6 @@ export function BrandBadge({ brand }: { brand: Brand }) {
   return (
     <span className="inline-flex items-center rounded border border-line px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-ink-2">
       {BRAND_LABEL[brand]}
-    </span>
-  );
-}
-
-const STATUS: Record<StoreStatus, { icon: string; className: string }> = {
-  good: { icon: "●", className: "bg-good-soft text-good" },
-  watch: { icon: "▲", className: "bg-warn-soft text-warn" },
-  critical: { icon: "■", className: "bg-crit-soft text-crit" },
-};
-
-export function StatusBadge({
-  status,
-  compact = false,
-  locale = "en",
-}: {
-  status: StoreStatus;
-  compact?: boolean;
-  locale?: Locale;
-}) {
-  const s = STATUS[status];
-  const label = getDictionary(locale).status[status];
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${s.className}`}
-      title={label}
-    >
-      <span aria-hidden className="text-[8px]">{s.icon}</span>
-      {compact ? <span className="sr-only">{label}</span> : label}
     </span>
   );
 }

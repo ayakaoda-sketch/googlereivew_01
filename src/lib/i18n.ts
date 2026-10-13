@@ -1,7 +1,7 @@
 // UI strings. English is the default; Korean is opt-in via the language toggle,
 // which stores the choice in the `lang` cookie.
 
-import type { AiSentiment, StoreStatus, TopicKey } from "./types";
+import type { AiSentiment, TopicKey } from "./types";
 
 export type Locale = "en" | "ko";
 
@@ -90,7 +90,6 @@ const en = {
   showingRange: (first: number, last: number, total: number) => `${first}–${last} of ${total}`,
 
   starsAria: (n: number) => `${n} out of 5 stars`,
-  status: { good: "Good", watch: "Watch", critical: "Critical" } as Record<StoreStatus, string>,
   sentiment: { positive: "positive", neutral: "neutral", mixed: "mixed", negative: "negative" } as Record<AiSentiment, string>,
   topics: {
     food_quality: "Food Quality",
@@ -180,7 +179,6 @@ const ko: Dictionary = {
   showingRange: (first, last, total) => `전체 ${total}건 중 ${first}–${last}`,
 
   starsAria: (n) => `5점 만점에 ${n}점`,
-  status: { good: "양호", watch: "주의", critical: "위험" },
   sentiment: { positive: "긍정", neutral: "중립", mixed: "혼합", negative: "부정" },
   topics: {
     food_quality: "음식 품질",

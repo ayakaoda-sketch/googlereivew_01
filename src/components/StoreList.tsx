@@ -6,7 +6,7 @@ import { formatRangeShort, type DateRange } from "@/lib/date";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import type { Brand, StoreRow } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
-import { BRAND_LABEL, BrandBadge, Delta, StatusBadge, formatRating } from "./ui";
+import { BRAND_LABEL, BrandBadge, Delta, formatRating } from "./ui";
 
 const BRANDS: Brand[] = ["WOLHWA_GALBI", "KODOKODO"];
 
@@ -99,14 +99,11 @@ export function StoreList({
                     : "border-line bg-surface hover:bg-surface-2"
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="truncate font-semibold">{store.shortName}</div>
-                    <div className="mt-1">
-                      <BrandBadge brand={store.brand} />
-                    </div>
+                <div className="min-w-0">
+                  <div className="truncate font-semibold">{store.shortName}</div>
+                  <div className="mt-1">
+                    <BrandBadge brand={store.brand} />
                   </div>
-                  <StatusBadge status={today.status} locale={locale} />
                 </div>
 
                 <div className="mt-3">
