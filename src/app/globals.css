@@ -19,6 +19,11 @@
   --crit-dot: #d03b3b;
   --crit-soft: #fbe9e9;
   --accent-ring: #2a78d6;
+  /* Store card backgrounds per brand */
+  --brand-wolhwa: #fdf0f0;
+  --brand-wolhwa-hover: #fae4e4;
+  --brand-kodo: #fff3e6;
+  --brand-kodo-hover: #ffe9d2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,6 +46,10 @@
     --crit-dot: #d03b3b;
     --crit-soft: #331717;
     --accent-ring: #3987e5;
+    --brand-wolhwa: #261716;
+    --brand-wolhwa-hover: #301d1c;
+    --brand-kodo: #271d12;
+    --brand-kodo-hover: #312517;
   }
 }
 
@@ -63,6 +72,10 @@
   --color-crit-dot: var(--crit-dot);
   --color-crit-soft: var(--crit-soft);
   --color-accent-ring: var(--accent-ring);
+  --color-brand-wolhwa: var(--brand-wolhwa);
+  --color-brand-wolhwa-hover: var(--brand-wolhwa-hover);
+  --color-brand-kodo: var(--brand-kodo);
+  --color-brand-kodo-hover: var(--brand-kodo-hover);
   --font-sans: var(--font-geist-sans), "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }

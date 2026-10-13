@@ -10,6 +10,12 @@ import { BRAND_LABEL, BrandBadge, Delta, formatRating } from "./ui";
 
 const BRANDS: Brand[] = ["WOLHWA_GALBI", "KODOKODO"];
 
+/** Card background per brand: light red for Wolhwa Galbi, light orange for KODOKODO. */
+const CARD_BG: Record<Brand, string> = {
+  WOLHWA_GALBI: "bg-brand-wolhwa hover:bg-brand-wolhwa-hover",
+  KODOKODO: "bg-brand-kodo hover:bg-brand-kodo-hover",
+};
+
 /** Review-count-weighted Google rating across all stores. */
 function overallCumulative(rows: StoreRow[]): { avg: number; total: number } | null {
   let sum = 0;
@@ -93,10 +99,8 @@ export function StoreList({
                 href={dashboardHref(range, selected ? undefined : store.slug)}
                 scroll={false}
                 aria-current={selected ? "true" : undefined}
-                className={`flex h-full flex-col rounded-xl border p-3 transition-colors ${
-                  selected
-                    ? "border-accent-ring bg-surface ring-2 ring-accent-ring/25"
-                    : "border-line bg-surface hover:bg-surface-2"
+                className={`flex h-full flex-col rounded-xl border p-3 transition-colors ${CARD_BG[store.brand]} ${
+                  selected ? "border-accent-ring ring-2 ring-accent-ring/25" : "border-line"
                 }`}
               >
                 <div className="min-w-0">
