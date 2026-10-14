@@ -20,6 +20,11 @@ const FILTERS: { key: Filter; label: (t: Dictionary) => string }[] = [
   { key: "critical", label: (t) => t.filterCritical },
 ];
 
+/** Google Translate page with the text pre-filled, translated to Korean. */
+function googleTranslateUrl(text: string): string {
+  return `https://translate.google.com/?${new URLSearchParams({ sl: "auto", tl: "ko", text, op: "translate" })}`;
+}
+
 /** Store-name chip in the brand's color (same hues as the store cards, stronger). */
 const STORE_CHIP: Record<Brand, string> = {
   WOLHWA_GALBI: "bg-crit-soft text-crit",
@@ -173,6 +178,17 @@ export function ReviewFeed({
                 <p className={`mt-1 text-sm leading-relaxed ${r.reviewText ? "" : "italic text-muted"}`}>
                   {r.reviewText ?? t.noText}
                 </p>
+                {/* Korean view only: free hand-off to Google Translate in a new tab (no API key). */}
+                {locale === "ko" && r.reviewText && (
+                  <a
+                    href={googleTranslateUrl(r.reviewText)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block text-xs font-medium text-series hover:underline"
+                  >
+                    {t.viewInGoogleTranslate} ↗
+                  </a>
+                )}
                 {r.analysis && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     {[...new Set(r.analysis.topics.map((m) => m.topic))].map((key) => (
