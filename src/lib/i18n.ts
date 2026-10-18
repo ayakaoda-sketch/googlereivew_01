@@ -56,9 +56,8 @@ const en = {
 
   // Store list
   stores: "Stores",
-  brand: "Brand",
   allStoresCumulative: "All stores cumulative",
-  brandCumulative: (brand: string) => `${brand} cumulative`,
+  storeCumulative: (store: string) => `${store} cumulative`,
   googleReviews: "Google reviews",
   reviewsWord: "Reviews",
   lowRatingCount: (n: number) => `1–2★ reviews: ${n}`,
@@ -148,9 +147,8 @@ const ko: Dictionary = {
   apply: "적용",
 
   stores: "매장",
-  brand: "브랜드",
   allStoresCumulative: "전체 매장 누적",
-  brandCumulative: (brand) => `${brand} 누적`,
+  storeCumulative: (store) => `${store} 누적`,
   googleReviews: "Google 리뷰",
   reviewsWord: "리뷰",
   lowRatingCount: (n) => `1–2★ 리뷰: ${n}건`,

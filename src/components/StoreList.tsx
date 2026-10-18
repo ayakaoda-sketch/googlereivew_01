@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatRangeShort, type DateRange } from "@/lib/date";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import type { Brand, StoreRow } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
 import { BRAND_LABEL, Delta } from "./ui";
-
-const BRANDS: Brand[] = ["WOLHWA_GALBI", "KODOKODO"];
 
 /** Card background per brand: light red for Wolhwa Galbi, light orange for KODOKODO. */
 const CARD_BG: Record<Brand, string> = {
@@ -65,44 +63,48 @@ export function StoreList({
   locale: Locale;
 }) {
   const t = getDictionary(locale);
-  // Client state, so it survives the soft navigation when a store card is clicked.
-  const [brand, setBrand] = useState<Brand | "all">("all");
-  const visible = brand === "all" ? rows : rows.filter((r) => r.store.brand === brand);
+  const router = useRouter();
+  // The selected store lives in the URL (?store=), shared with the review feed's store picker.
+  const shownRow = rows.find((r) => r.store.slug === selectedSlug);
+  const visible = shownRow ? [shownRow] : rows;
   const overall = overallCumulative(visible);
 
   const tabs = [
-    { key: "all" as const, label: t.filterAll, count: rows.length },
-    ...BRANDS.map((b) => ({
-      key: b,
-      label: BRAND_LABEL[b],
-      count: rows.filter((r) => r.store.brand === b).length,
-    })).filter((tab) => tab.count > 0),
+    { key: "all", label: `${t.filterAll} ${rows.length}` },
+    ...rows.map((r) => ({ key: r.store.slug, label: r.store.shortName })),
   ];
+  const tabKey = shownRow ? shownRow.store.slug : "all";
+  const choose = (key: string) =>
+    router.replace(dashboardHref(range, key === "all" ? undefined : key), { scroll: false });
 
   return (
     <nav aria-label={t.stores}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.stores}</h2>
-          <div role="group" aria-label={t.brand} className="flex rounded-lg border border-line bg-surface p-0.5 text-xs">
+          <div
+            role="group"
+            aria-label={t.stores}
+            className="flex flex-wrap gap-0.5 rounded-lg border border-line bg-surface p-0.5 text-xs"
+          >
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
-                aria-pressed={brand === tab.key}
-                onClick={() => setBrand(tab.key)}
+                aria-pressed={tabKey === tab.key}
+                onClick={() => choose(tab.key)}
                 className={`rounded-md px-2.5 py-1 font-medium ${
-                  brand === tab.key ? "bg-ink text-surface" : "text-ink-2 hover:bg-surface-2"
+                  tabKey === tab.key ? "bg-ink text-surface" : "text-ink-2 hover:bg-surface-2"
                 }`}
               >
-                {tab.label} <span className="tabular-nums opacity-70">{tab.count}</span>
+                {tab.label}
               </button>
             ))}
           </div>
         </div>
         {overall && (
           <p className="text-xs text-ink-2">
-            {brand === "all" ? t.allStoresCumulative : t.brandCumulative(BRAND_LABEL[brand])}{" "}
+            {shownRow ? t.storeCumulative(shownRow.store.shortName) : t.allStoresCumulative}{" "}
             <span className="font-semibold tabular-nums text-ink">{overall.avg.toFixed(2)} ★</span>
             <span className="text-muted">
               {" "}

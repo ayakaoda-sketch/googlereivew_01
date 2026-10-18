@@ -73,7 +73,8 @@ export function ReviewFeed({
 }) {
   const t = getDictionary(locale);
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("all");
+  // Start on the low ratings — the reviews that need action first.
+  const [filter, setFilter] = useState<Filter>("critical");
   const [topic, setTopic] = useState<TopicKey | "">("");
   const [sort, setSort] = useState<Sort>("highest");
 
