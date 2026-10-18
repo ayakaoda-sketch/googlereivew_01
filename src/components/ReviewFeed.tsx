@@ -9,16 +9,30 @@ import type { AiSentiment, AnalyzedReview, Brand, TopicKey } from "@/lib/types";
 import { dashboardHref } from "@/lib/url";
 import { Card, SectionTitle, Stars } from "./ui";
 
-type Filter = "all" | "positive" | "negative" | "critical";
+type Filter = "all" | "critical";
+type Sort = "highest" | "lowest" | "newest";
 
 const PAGE_SIZE = 15;
 
 const FILTERS: { key: Filter; label: (t: Dictionary) => string }[] = [
   { key: "all", label: (t) => t.filterAll },
-  { key: "positive", label: (t) => t.positive },
-  { key: "negative", label: (t) => t.negative },
   { key: "critical", label: (t) => t.filterCritical },
 ];
+
+const SORTS: { key: Sort; label: (t: Dictionary) => string }[] = [
+  { key: "highest", label: (t) => t.sortHighest },
+  { key: "lowest", label: (t) => t.sortLowest },
+  { key: "newest", label: (t) => t.sortNewest },
+];
+
+const newestFirst = (a: AnalyzedReview, b: AnalyzedReview) => b.googleCreatedAt.localeCompare(a.googleCreatedAt);
+
+/** Rating sorts break ties by date, newest first. */
+const SORT_COMPARE: Record<Sort, (a: AnalyzedReview, b: AnalyzedReview) => number> = {
+  highest: (a, b) => b.rating - a.rating || newestFirst(a, b),
+  lowest: (a, b) => a.rating - b.rating || newestFirst(a, b),
+  newest: newestFirst,
+};
 
 /** Google Translate page with the text pre-filled, translated to Korean. */
 function googleTranslateUrl(text: string): string {
@@ -38,20 +52,8 @@ const SENTIMENT_STYLE: Record<AiSentiment, string> = {
   negative: "text-crit",
 };
 
-// Positive/Negative use the AI text sentiment (so a 5★ review that raises an
-// issue shows under Negative as "mixed"); "1–2 Stars" uses the rating.
 function matches(review: AnalyzedReview, filter: Filter): boolean {
-  const s = review.analysis?.sentiment;
-  switch (filter) {
-    case "all":
-      return true;
-    case "positive":
-      return s === "positive" || (!s && review.rating >= 4);
-    case "negative":
-      return s === "negative" || s === "mixed" || (!s && review.rating <= 2);
-    case "critical":
-      return review.rating <= 2;
-  }
+  return filter === "all" || review.rating <= 2;
 }
 
 export function ReviewFeed({
@@ -71,9 +73,9 @@ export function ReviewFeed({
 }) {
   const t = getDictionary(locale);
   const router = useRouter();
-  // Start on the low ratings — the reviews that need action first.
-  const [filter, setFilter] = useState<Filter>("critical");
+  const [filter, setFilter] = useState<Filter>("all");
   const [topic, setTopic] = useState<TopicKey | "">("");
+  const [sort, setSort] = useState<Sort>("highest");
 
   const storeById = Object.fromEntries(stores.map((s) => [s.id, s]));
   const selectedId = stores.find((s) => s.slug === selectedSlug)?.id;
@@ -85,12 +87,11 @@ export function ReviewFeed({
         matches(r, filter) &&
         (!topic || r.analysis?.topics.some((m) => m.topic === topic)),
     );
-    // Newest first, whatever the filter.
-    return [...list].sort((a, b) => b.googleCreatedAt.localeCompare(a.googleCreatedAt));
-  }, [reviews, selectedId, filter, topic]);
+    return [...list].sort(SORT_COMPARE[sort]);
+  }, [reviews, selectedId, filter, topic, sort]);
 
   // Back to page 1 whenever what is being listed changes (store comes from the URL).
-  const listKey = `${selectedSlug}|${filter}|${topic}`;
+  const listKey = `${selectedSlug}|${filter}|${topic}|${sort}`;
   const [paging, setPaging] = useState({ key: listKey, page: 1 });
   const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const page = paging.key === listKey ? Math.min(paging.page, pageCount) : 1;
@@ -145,6 +146,18 @@ export function ReviewFeed({
           {TOPIC_KEYS.map((key) => (
             <option key={key} value={key}>
               {topicLabel(key, locale)}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label={t.sortBy}
+          value={sort}
+          onChange={(e) => setSort(e.target.value as Sort)}
+          className="rounded-full border border-line bg-surface px-3 py-1 text-xs text-ink-2 sm:ml-auto"
+        >
+          {SORTS.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label(t)}
             </option>
           ))}
         </select>
